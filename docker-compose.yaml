@@ -1,0 +1,57 @@
+version: '3'
+
+services:
+
+  mysql_db:
+    container_name: mysql_db
+    build:
+      context: ./docker_config
+      dockerfile: Dockerfile_mysql
+    volumes:
+      - ./mysql:/var/lib/mysql
+    environment:
+     MYSQL_ROOT_PASSWORD: root
+     MYSQL_DATABASE: test
+     MYSQL_USER: user
+     MYSQL_PASSWORD: user
+    command: --character-set-server=utf8 --collation-server=utf8_general_ci
+
+
+  phpmyadmin:
+    container_name: phpmyadmin
+    image: phpmyadmin/phpmyadmin:latest
+    environment:
+     MYSQL_ROOT_PASSWORD: root
+     PMA_HOST: mysql_db
+    depends_on:
+     - mysql_db
+    volumes:
+     - /sessions
+
+  php:
+    container_name: php
+    build:
+      context: ./docker_config
+      dockerfile: Dockerfile_php
+    volumes:
+      - ./www:/www
+    depends_on:
+      - mysql_db
+
+
+  nginx:
+    # используем последний стабильный образ nginx
+    image: nginx:latest
+    # маршрутизируем порты
+    ports:
+        - "8081:8081"
+        - "8082:8082"
+    # монтируем директории, слева директории на основной машине, справа - куда они монтируются в контейнере
+    volumes:
+        - ./hosts:/etc/nginx/conf.d
+        - ./www:/www
+        - ./logs/nginx:/var/log/nginx
+    # nginx должен общаться с php контейнером
+    links:
+      - php
+      - phpmyadmin

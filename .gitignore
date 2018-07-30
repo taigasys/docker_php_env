@@ -1,0 +1,11 @@
+# Mac DS_Store Files
+.DS_Store
+
+# phpstorm project files
+.idea
+
+# папка с базой MySQL
+/mysql
+/logs
+
+docker_php_env.code-workspace
